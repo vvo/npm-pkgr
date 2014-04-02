@@ -1,0 +1,14 @@
+{
+  "name": "simple",
+  "version": "0.0.0",
+  "description": "",
+  "main": "simple.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "0.2.0"
+  }
+}
