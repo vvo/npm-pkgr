@@ -4,7 +4,10 @@
   "description": "Cache `npm install` results by hashing dependencies",
   "main": "index.js",
   "scripts": {
-    "test": "node test/simple.js"
+    "test": "find test/spec/*.js -exec node {} \\;"
+  },
+  "bin": {
+    "npm-pkgr": "./cli.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +29,8 @@
   "devDependencies": {
     "shelljs": "^0.2.6",
     "prova": "^1.0.12",
-    "tmp": "0.0.23"
+    "tmp": "0.0.23",
+    "uuid": "^1.4.1",
+    "lodash": "^2.4.1"
   }
 }

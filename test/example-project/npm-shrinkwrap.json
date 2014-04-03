@@ -1,0 +1,11 @@
+{
+  "name": "simple",
+  "version": "0.0.0",
+  "dependencies": {
+    "lodash": {
+      "version": "0.2.0",
+      "from": "lodash@0.2.0",
+      "resolved": "https://registry.npmjs.org/lodash/-/lodash-0.2.0.tgz"
+    }
+  }
+}

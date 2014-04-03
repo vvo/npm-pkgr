@@ -1,6 +1,7 @@
 module.exports = npmPkgr;
 
 function npmPkgr(opts, cb) {
+
   var debug = require('debug')('npm-pkgr');
 
   debug('starting npm-pkgr with opts: %j', opts);
@@ -21,24 +22,54 @@ function npmPkgr(opts, cb) {
 
   computeHash(opts.cwd, production, function(err, hash) {
     var mkdirp = require('mkdirp');
-
     if (err) {
       return cb(err);
     }
 
     debug('hash was %s', hash);
+    var npmPkgrCache = path.join(process.env.HOME, '.npm-pkgr');
     var cacheDir = path.join(process.env.HOME, '.npm-pkgr', hash);
 
     debug('creating cache dir %s', cacheDir);
-    mkdirp(cacheDir, function(err, made) {
+    mkdirp(npmPkgrCache, function(err) {
       if (err) {
         return cb(err);
       }
 
-      if (!made) {
-        debug('cache dir %s already exists, using it', cacheDir);
+      mkdirp(cacheDir, function(err, made) {
+        if (err) {
+          return cb(err);
+        }
 
-        return async.series([
+        if (made === null) {
+          return fs.exists(path.join(cacheDir, '.npm-pkgr-finished'), function(exists) {
+            if (!exists) {
+              return setTimeout(npmPkgr, 5000, opts, cb);
+            }
+
+            debug('cache dir %s already exists, using it', cacheDir);
+
+            async.series([
+              rimraf.bind(null, path.join(opts.cwd, 'node_modules')),
+              fs.symlink.bind(fs,
+                path.join(cacheDir, 'node_modules'),
+                path.join(opts.cwd, 'node_modules'),
+                'dir'
+              )
+            ], end);
+          });
+        }
+
+        process.on('SIGINT', removeCacheDir);
+        process.on('SIGTERM', removeCacheDir);
+
+        debug('finished creating cache dir %s', cacheDir);
+
+        npmUsed = true;
+        async.series([
+          copyIfExists.bind(null, files, cacheDir),
+          startNpm.bind(null, cacheDir, npmArgs),
+          fs.open.bind(fs, path.join(cacheDir, '.npm-pkgr-finished'), 'w'),
           rimraf.bind(null, path.join(opts.cwd, 'node_modules')),
           fs.symlink.bind(fs,
             path.join(cacheDir, 'node_modules'),
@@ -46,38 +77,42 @@ function npmPkgr(opts, cb) {
             'dir'
           )
         ], end);
-      }
 
-      debug('finished creating cache dir %s', cacheDir);
+        function end(err) {
+          if (err) {
+            removeCacheDir(false);
+            return cb(err);
+          }
 
-      npmUsed = true;
-      async.series([
-        copyIfExists.bind(null, files, cacheDir),
-        startNpm.bind(null, cacheDir, npmArgs),
-        rimraf.bind(null, path.join(opts.cwd, 'node_modules')),
-        fs.symlink.bind(fs,
-          path.join(cacheDir, 'node_modules'),
-          path.join(opts.cwd, 'node_modules'),
-          'dir'
-        )
-      ], end);
+          // process.removeListener('SIGINT', removeCacheDir);
+          // process.removeListener('SIGTERM', removeCacheDir);
 
+          cb(null, {
+            dir: opts.cwd,
+            node_modules: path.join(opts.cwd, 'node_modules'),
+            npm: npmUsed
+          });
+        }
+
+        function removeCacheDir(exit) {
+          debug('was interrupted, removing cache dir')
+          rimraf.sync(cacheDir);
+          if (exit !== false) {
+            process.exit(1);
+          }
+        }
+
+      });
     });
   });
-
-  function end(err) {
-    if (err) {
-      return cb(err);
-    }
-
-    cb(null, path.join(opts.cwd, 'node_modules'), npmUsed);
-  }
 }
 
 function computeHash(dir, production, cb) {
   var json = require('jsonfile');
   var crypto = require('crypto');
   var shasum = crypto.createHash('sha1');
+
+  shasum.update(process.version);
 
   if (production === true) {
     return readNpmShrinkwrapJson();
@@ -120,6 +155,8 @@ function computeHash(dir, production, cb) {
       }
 
       shasum.update(JSON.stringify(pkg.dependencies));
+      shasum.update(JSON.stringify(pkg.devDependencies));
+
       readNpmShrinkwrapJson();
     }
   }
