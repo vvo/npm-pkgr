@@ -169,7 +169,8 @@ function startNpm(dir, npmArgs, cb) {
 
   debug('start `npm install %s`', npmArgs);
   exec('npm install ' + npmArgs, {
-    cwd: dir
+    cwd: dir,
+    maxBuffer: 20*1024*1024
   }, npmDone);
 
   function npmDone(err, stdout, stderr) {
