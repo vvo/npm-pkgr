@@ -1,231 +1,166 @@
 module.exports = npmPkgr;
 
-function npmPkgr(opts, cb) {
+var async = require('contra');
+var fs = require('fs');
+var lockfile = require('lockfile');
+var mkdirp = require('mkdirp');
+var path = require('path');
+var rimraf = require('rimraf');
 
+var computeHash = require('./lib/compute-hash');
+var installNpm = require('./lib/install-npm');
+var lazyCopy = require('./lib/lazy-copy');
+var realPath = require('./lib/real-path');
+
+function npmPkgr(opts, cb) {
   var debug = require('debug')('npm-pkgr');
 
   debug('starting npm-pkgr with opts: %j', opts);
 
   opts.args = opts.args || [];
 
-  var async = require('contra');
-  var fs = require('fs');
-  var path = require('path');
-  var rimraf = require('rimraf');
-
   var npmArgs = opts.args.join(' ');
-
   var npmUsed;
-
   var files = ['package.json', 'npm-shrinkwrap.json'].map(realPath(opts.cwd));
   var production = opts.args.indexOf('--production') !== -1;
+  var npmPkgrCache = path.join(process.env.HOME, '.npm-pkgr');
+  var lockOpts = {
+    wait: 2 * 1000,
+    stale: 60 * 1000,
+    retries: 30
+  };
 
-  computeHash(opts.cwd, production, function(err, hash) {
-    var mkdirp = require('mkdirp');
+  /**
+   * Flow:
+   *   - create `~/.npm-pkgr`
+   *   - compute project hash (based on dependencies)
+   *   - get cache lock on `~/.npm-pkgr/$hash`
+   *     - create `~/.npm-pkgr/$hash`
+   *       - dir exists?
+   *         - yes
+   *           release cache lock
+   *           get node_modules/
+   *         - no
+   *           copy package.json, npm-shrinkwrap.json into `~/.npm-pkgr/$hash`
+   *           npm install in `~/.npm-pkgr/$hash`
+   *           release cache lock
+   *           get node_modules/
+   *   - error or interrupt at any moment?
+   *     release locks
+   *     rm -rf `~/.npm-pkgr/$hash`
+   *     call cb
+   *   - everything went fine?
+   *     call cb with {
+   *       dir: opts.cwd,
+   *       node_modules: opts.cwd/node_modules
+   *       npm: npmUsed // was npm used in the process?
+   *     }
+   */
+
+  async.series([
+    mkdirp.bind(null, npmPkgrCache),
+    computeHash.bind(null, opts.cwd, production)
+  ], function(err, res) {
     if (err) {
-      return cb(err);
+      return end(err);
     }
 
-    debug('hash was %s', hash);
-    var npmPkgrCache = path.join(process.env.HOME, '.npm-pkgr');
-    var cacheDir = path.join(process.env.HOME, '.npm-pkgr', hash);
+    var hash = res[1];
+    var cachelock = path.join(npmPkgrCache, hash + '.lock');
+    var copylock = path.join(npmPkgrCache, hash + '-copy.lock');
+    var cachedir = path.join(npmPkgrCache, hash);
+    var cancelAndExit = cancel.bind(null, true);
+    var destination = path.join(opts.cwd, 'node_modules');
 
-    debug('creating cache dir %s', cacheDir);
-    mkdirp(npmPkgrCache, function(err) {
+    async.series([
+      lockfile.lock.bind(lockfile, cachelock, lockOpts),
+      mkdirp.bind(null, cachedir)
+    ], function(err, res) {
+      debug('cachedir: %s, lockfile: %s', cachedir, cachelock);
+
       if (err) {
+        return end(err);
+      }
+
+      process.once('SIGTERM', cancelAndExit);
+      process.once('SIGINT', cancelAndExit);
+
+      // mkdirp sends (err, made), made = null means dir already exists
+      var exists = res[1] === null;
+
+      if (exists) {
+        return async.series([
+          lockfile.unlock.bind(null, cachelock),
+          getNodeModules
+        ], end);
+      }
+
+      npmUsed = true;
+      async.series([
+        lazyCopy.bind(null, files, cachedir),
+        installNpm.bind(null, cachedir, npmArgs),
+        lockfile.unlock.bind(lockfile, cachelock),
+        getNodeModules
+      ], end);
+
+    });
+
+    function cancel(exit) {
+      try {
+        rimraf.sync(cachedir);
+        lockfile.unlockSync(cachelock);
+        lockfile.unlockSync(copylock);
+      } catch (e) {}
+
+      if (exit) {
+        process.exit(1);
+      }
+    }
+
+    function end(err) {
+      try {
+        process.removeListener('SIGTERM', cancelAndExit);
+        process.removeListener('SIGINT', cancelAndExit);
+      } catch (e) {}
+
+      if (err) {
+        cancel();
         return cb(err);
       }
 
-      mkdirp(cacheDir, function(err, made) {
-        if (err) {
-          return cb(err);
-        }
-
-        if (made === null) {
-          return fs.exists(path.join(cacheDir, '.npm-pkgr-finished'), function(exists) {
-            if (!exists) {
-              return setTimeout(npmPkgr, 5000, opts, cb);
-            }
-
-            debug('cache dir %s already exists, using it', cacheDir);
-
-            async.series([
-              rimraf.bind(null, path.join(opts.cwd, 'node_modules')),
-              fs.symlink.bind(fs,
-                path.join(cacheDir, 'node_modules'),
-                path.join(opts.cwd, 'node_modules'),
-                'dir'
-              )
-            ], end);
-          });
-        }
-
-        process.on('SIGINT', removeCacheDir);
-        process.on('SIGTERM', removeCacheDir);
-
-        debug('finished creating cache dir %s', cacheDir);
-
-        npmUsed = true;
-        async.series([
-          copyIfExists.bind(null, files, cacheDir),
-          startNpm.bind(null, cacheDir, npmArgs),
-          fs.open.bind(fs, path.join(cacheDir, '.npm-pkgr-finished'), 'w'),
-          rimraf.bind(null, path.join(opts.cwd, 'node_modules')),
-          fs.symlink.bind(fs,
-            path.join(cacheDir, 'node_modules'),
-            path.join(opts.cwd, 'node_modules'),
-            'dir'
-          )
-        ], end);
-
-        function end(err) {
-          if (err) {
-            removeCacheDir(false);
-            return cb(err);
-          }
-
-          // process.removeListener('SIGINT', removeCacheDir);
-          // process.removeListener('SIGTERM', removeCacheDir);
-
-          cb(null, {
-            dir: opts.cwd,
-            node_modules: path.join(opts.cwd, 'node_modules'),
-            npm: npmUsed
-          });
-        }
-
-        function removeCacheDir(exit) {
-          debug('was interrupted, removing cache dir')
-          rimraf.sync(cacheDir);
-          if (exit !== false) {
-            process.exit(1);
-          }
-        }
-
+      cb(null, {
+        dir: opts.cwd,
+        node_modules: destination,
+        npm: npmUsed
       });
-    });
+    }
+
+    // externalize
+    function getNodeModules(cb) {
+      var ncp = require('ncp');
+      var get;
+
+      if (opts.strategy === 'copy') {
+        get = ncp.bind(null,
+          path.join(cachedir, 'node_modules'),
+          path.join(opts.cwd, 'node_modules'));
+      } else {
+        get = fs.symlink.bind(fs,
+          path.join(cachedir, 'node_modules'),
+          path.join(opts.cwd, 'node_modules'),
+          'dir'
+        )
+      }
+
+      async.series([
+        lockfile.lock.bind(lockfile, copylock, lockOpts),
+        rimraf.bind(null, path.join(opts.cwd, 'node_modules')),
+        // copy or symlink
+        get,
+        lockfile.unlock.bind(lockfile, copylock)
+      ], cb);
+    }
+
   });
-}
 
-function computeHash(dir, production, cb) {
-  var json = require('jsonfile');
-  var crypto = require('crypto');
-  var shasum = crypto.createHash('sha1');
-
-  shasum.update(process.version);
-
-  if (production === true) {
-    return readNpmShrinkwrapJson();
-  }
-
-  readBoth();
-
-  function readNpmShrinkwrapJson() {
-    json.readFile(realPath(dir)('npm-shrinkwrap.json'), gotNpmShrinkwrapJson);
-
-    function gotNpmShrinkwrapJson(err, pkg) {
-      if (production) {
-        if (err) {
-          return cb(err);
-        }
-
-        if (!pkg.dependencies) {
-          return cb(new Error('No dependencies found in shrinkwrap'));
-        }
-      }
-
-      if (err) {
-        return cb(null, shasum.digest('hex'))
-      }
-
-      if (pkg.dependencies) {
-        shasum.update(JSON.stringify(pkg.dependencies));
-      }
-
-      cb(null, shasum.digest('hex'));
-    }
-  }
-
-  function readBoth() {
-    json.readFile(realPath(dir)('package.json'), gotPackageJson);
-
-    function gotPackageJson(err, pkg) {
-      if (err) {
-        return cb(err)
-      }
-
-      shasum.update(JSON.stringify(pkg.dependencies));
-      shasum.update(JSON.stringify(pkg.devDependencies));
-
-      readNpmShrinkwrapJson();
-    }
-  }
-}
-
-function startNpm(dir, npmArgs, cb) {
-  var debug = require('debug')('npm-pkgr:npm');
-
-  var exec = require('child_process').exec;
-
-  debug('start `npm install %s`', npmArgs);
-  exec('npm install ' + npmArgs, {
-    cwd: dir,
-    maxBuffer: 20*1024*1024
-  }, npmDone);
-
-  function npmDone(err, stdout, stderr) {
-    debug('end `npm install %s`', npmArgs);
-    cb(err);
-  }
-}
-
-function copyIfExists(files, to, cb) {
-  var debug = require('debug')('npm-pkgr:copy');
-
-  var async = require('contra');
-  var path = require('path');
-
-  async.waterfall([
-    filter.bind(null, files),
-    copyFiltered
-  ], cb);
-
-  function filter(files, cb) {
-    var fs = require('fs');
-    async.filter(files, fileExists, cb);
-  }
-
-  function copyFiltered(files) {
-    debug('copying %j to %s', files, to);
-
-    async.each(files, function copy(file) {
-      cp(file, path.join(to, path.basename(file)), cb);
-    }, cb);
-  }
-}
-
-function fileExists(file, cb) {
-  var fs = require('fs');
-  fs.exists(file, cb.bind(null, null));
-}
-
-function cp(src, dest, callback) {
-  var fs = require('fs');
-  var reader = fs.createReadStream(src);
-  var writer = fs.createWriteStream(dest);
-
-  reader.on('error', callback);
-  writer.on('error', callback);
-
-  reader.pipe(writer);
-
-  writer.on('finish', callback);
-}
-
-function realPath(dir) {
-  var path = require('path');
-
-  return function computeRealPath(file) {
-    return path.join(dir, file);
-  }
 }

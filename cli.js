@@ -3,7 +3,8 @@ var npmPkgr = require('./');
 
 npmPkgr({
   cwd: process.cwd(),
-  args: process.argv.slice(2)
+  args: process.argv.slice(2),
+  strategy: require('minimist')(process.argv.slice(2)).strategy
 }, end);
 
 function end(err, res) {

@@ -8,7 +8,11 @@ npm-pkgr caches `npm install` results by hashing dependencies from `package.json
 and `npm-shrinkwrap.json`.
 
 If your `package.json` did not change from last build, then you will immediately get
-a symbolic `node_modules` link to the latest build result.
+either:
+- a symlink `node_modules`..
+- a full `node_modules` copy..
+
+.. to the latest build result.
 
 npm-pkgr frees your CI server from npm dependency and will make your builds or
 deploys run fast.
@@ -33,6 +37,16 @@ npm-pkgr --production
 
 Hashes and fin the latest build corresponding to `npm-shrinkwrap.json`.
 
+### strategy
+
+Default strategy is to symlink `$CWD/node_modules -> ~/.npm-pkgr/$hash/node_modules`.
+
+You can also get a full copy of the `~/.npm-pkgr/$hash/node_modules`.
+
+```shell
+npm-pkgr --strategy copy
+```
+
 ## features
 
 * insanely fast `npm install` if already done
@@ -40,3 +54,4 @@ Hashes and fin the latest build corresponding to `npm-shrinkwrap.json`.
 * solves shrinkwrap inconsistencies/problems
 * solves devDependencies updates even when you use a shrinkwrap
 * concurrent builds
+* get symlinks or copy to cached `node_modules`
