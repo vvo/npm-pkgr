@@ -44,8 +44,10 @@ Default strategy is to symlink `$CWD/node_modules -> ~/.npm-pkgr/$hash/node_modu
 You can also get a full copy of the `~/.npm-pkgr/$hash/node_modules`.
 
 ```shell
-npm-pkgr --strategy copy
+npm-pkgr --strategy=copy
 ```
+
+Carefull, if you `--strategy copy`, you will end up installing the `copy package`
 
 ## features
 
