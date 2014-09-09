@@ -1,8 +1,8 @@
 # npm-pkgr
 
-[![Build Status](https://travis-ci.org/vvo/npm-pkgr.svg?branch=master)](https://travis-ci.org/vvo/npm-pkgr)
-[![Dependency Status](https://david-dm.org/vvo/npm-pkgr.svg?theme=shields.io)](https://david-dm.org/vvo/npm-pkgr)
-[![devDependency Status](https://david-dm.org/vvo/npm-pkgr/dev-status.svg?theme=shields.io)](https://david-dm.org/vvo/npm-pkgr#info=devDependencies)
+[![Build Status](http://img.shields.io/travis/vvo/npm-pkgr/master.svg?style=flat-square)](https://travis-ci.org/vvo/npm-pkgr)
+[![Dependency Status](http://img.shields.io/david/vvo/npm-pkgr.svg?style=flat-square)](https://david-dm.org/vvo/npm-pkgr)
+[![devDependency Status](http://img.shields.io/david/dev/vvo/npm-pkgr.svg?style=flat-square)](https://david-dm.org/vvo/npm-pkgr#info=devDependencies)
 
 npm-pkgr caches `npm install` results by hashing dependencies from `package.json`
 and `npm-shrinkwrap.json`.
