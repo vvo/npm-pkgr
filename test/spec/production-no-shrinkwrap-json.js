@@ -15,9 +15,8 @@ test('--production usage without an npm-shrinkwrap.json file', function(t) {
   }, end);
 
   function end(err, result) {
-    t.equal(err.code, 'ENOENT');
-    t.ok(err.message.indexOf('npm-shrinkwrap.json') !== -1);
-    t.notOk(result);
+    t.equal(err, null, 'it works even without an `npm-shrinkwrap.json`');
+    t.ok(result);
     t.end();
   }
 });
