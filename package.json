@@ -27,11 +27,13 @@
     "minimist": "^1.1.0",
     "mkdirp": "^0.5.0",
     "ncp": "^0.6.0",
+    "npm-version": "^1.1.0",
     "rimraf": "^2.2.6"
   },
   "devDependencies": {
     "lodash": "^2.4.1",
     "prova": "^1.0.12",
+    "proxyquire": "^1.0.1",
     "shelljs": "^0.3.0",
     "tmp": "0.0.24",
     "uuid": "^1.4.1"
