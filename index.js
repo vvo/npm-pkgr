@@ -15,7 +15,7 @@ var realPath = require('./lib/real-path');
 function npmPkgr(opts, cb) {
   var debug = require('debug')('npm-pkgr');
 
-  debug('starting npm-pkgr with opts: %j', opts);
+  console.log('starting npm-pkgr with opts: %j', opts);
 
   opts.args = opts.args || [];
 
@@ -107,7 +107,14 @@ function npmPkgr(opts, cb) {
 
     function cancel(exit) {
       try {
+
+        // save npm-debug.log before deleteing everything
+        if (fs.existsSync(path.join(cachedir, 'npm-debug.log'))) {
+          fs.writeFileSync(path.join(opts.cwd, 'npm-debug.log'), fs.readFileSync(path.join(cachedir, 'npm-debug.log')))
+        }
+
         rimraf.sync(cachedir);
+
         lockfile.unlockSync(cachelock);
         lockfile.unlockSync(copylock);
       } catch (e) {}

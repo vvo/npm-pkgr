@@ -4,7 +4,7 @@
 [![Dependency Status](http://img.shields.io/david/vvo/npm-pkgr.svg?style=flat-square)](https://david-dm.org/vvo/npm-pkgr)
 [![devDependency Status](http://img.shields.io/david/dev/vvo/npm-pkgr.svg?style=flat-square)](https://david-dm.org/vvo/npm-pkgr#info=devDependencies)
 
-npm-pkgr caches `npm install` results by hashing dependencies from `package.json`
+`npm-pkgr` caches `npm install` results by hashing dependencies from `package.json`
 and `npm-shrinkwrap.json`.
 
 If your `package.json` did not change from last build, then you will immediately get
@@ -12,9 +12,9 @@ either:
 - a symlink `node_modules`..
 - a full `node_modules` copy..
 
-.. to the latest build result.
+.. to the latest build result located in `~/.npm-pkgr`
 
-npm-pkgr frees your CI server from npm dependency and will make your builds or
+`npm-pkgr` frees your deployments from npm network issues and will make your
 deploys run fast.
 
 ## Usage
@@ -36,6 +36,22 @@ npm-pkgr --production
 ```
 
 Hashes and fin the latest build corresponding to `npm-shrinkwrap.json`.
+
+Every flag passed to `npm-pkgr` is then passed down to `npm` command.
+
+## Cache folder
+
+The cache folder used by `npm-pkgr` is `~/.npm-pkgr` for current user.
+
+We do not do any cleaning in it if it becomes too large, do it.
+
+## Debug
+
+```shell
+DEBUG=npm-pkgr* npm-pkgr
+```
+
+Will give you some debug information.
 
 ### strategy
 

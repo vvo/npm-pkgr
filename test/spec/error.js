@@ -6,7 +6,6 @@ test('error occurs', function(t) {
   var tmpMaster = getTmpProject();
 
   var pkg = path.join(tmpMaster, 'package.json');
-  var shrinkwrap = path.join(tmpMaster, 'npm-shrinkwrap.json');
 
   async.series([
     updateJson(pkg, {
