@@ -108,7 +108,7 @@ function npmPkgr(opts, cb) {
     function cancel(exit) {
       try {
 
-        // save npm-debug.log before deleteing everything
+        // save npm-debug.log before deleting everything
         if (fs.existsSync(path.join(cachedir, 'npm-debug.log'))) {
           fs.writeFileSync(path.join(opts.cwd, 'npm-debug.log'), fs.readFileSync(path.join(cachedir, 'npm-debug.log')))
         }
