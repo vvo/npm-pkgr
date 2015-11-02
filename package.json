@@ -4,7 +4,7 @@
   "description": "Cache `npm install` results by hashing dependencies",
   "main": "index.js",
   "scripts": {
-    "test": "find test/spec/*.js -exec node {} \\;"
+    "test": "find test/spec/*.js -print0 | xargs -n 1 -0 node"
   },
   "bin": {
     "npm-pkgr": "./cli.js"
