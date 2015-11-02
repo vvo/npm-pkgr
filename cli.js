@@ -1,10 +1,16 @@
 #!/usr/bin/env node
 var npmPkgr = require('./');
+var argv = require('minimist')(process.argv.slice(2));
+
+if (argv.version) {
+  console.log(require('./package.json').version);
+  process.exit(0);
+}
 
 npmPkgr({
   cwd: process.cwd(),
   args: process.argv.slice(2),
-  strategy: require('minimist')(process.argv.slice(2)).strategy
+  strategy: argv.strategy
 }, end);
 
 function end(err, res) {
