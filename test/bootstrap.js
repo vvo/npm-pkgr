@@ -22,7 +22,8 @@ getTmpProject = function getTmpProject(from) {
   var tmpDir = path.join(shell.tempdir(), uuid.v4());
 
   from = from || baseProject;
-  shell.cp('-R', from + '/*', tmpDir);
+  shell.cp('-R', from + '/', tmpDir);
+  shell.cp(from + '/.npmrc', tmpDir);
 
   return tmpDir;
 }
@@ -46,4 +47,3 @@ updateJson = function updateJson(file, props) {
     json.writeFile(file, newJSON, cb);
   }
 }
-

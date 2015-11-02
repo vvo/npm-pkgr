@@ -21,7 +21,7 @@ function npmPkgr(opts, cb) {
 
   var npmArgs = opts.args.join(' ');
   var npmUsed;
-  var files = ['package.json', 'npm-shrinkwrap.json'].map(realPath(opts.cwd));
+  var files = ['package.json', 'npm-shrinkwrap.json', '.npmrc'].map(realPath(opts.cwd));
   var production = opts.args.indexOf('--production') !== -1;
   var npmPkgrCache = path.join(process.env.HOME, '.npm-pkgr');
   var lockOpts = {

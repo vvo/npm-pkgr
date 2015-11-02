@@ -32,7 +32,7 @@ test('node version is different', function(t) {
 
 function updateNodeVersion(version) {
   return function(cb) {
-    process.version = version;
+    Object.defineProperty(process, 'version', {value: version});
     process.nextTick(cb);
   }
 }
