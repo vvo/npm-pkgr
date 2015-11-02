@@ -10,7 +10,12 @@ test('concurrent installs', function(t) {
   async.concurrent(tasks, end);
 
   function end(err, results) {
-    t.error(err);
+    if (err) {
+      t.error(err);
+      t.end();
+      return;
+    }
+
     var npmUsed = 0;
     results.forEach(function(res) {
       if (res.npm === true) {
