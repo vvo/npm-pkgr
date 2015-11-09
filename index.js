@@ -37,7 +37,7 @@ function npmPkgr(opts, cb) {
     *   - find `~/.npm-pkgr/*` dir older than one month
     *   - remove them
   */
-  if (opts.args[0] === 'prune') return pruneCache(npmPkgrCache);
+  if (opts.args[0] === 'prune') return pruneCache(npmPkgrCache, cb);
 
   /**
    * Flow:
