@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "lodash": "^3.10.1",
+    "mock-fs": "^3.4.0",
     "prova": "^2.1.2",
     "proxyquire": "^1.0.1",
     "shelljs": "^0.5.3",
