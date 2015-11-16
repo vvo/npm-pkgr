@@ -43,7 +43,11 @@ Every flag passed to `npm-pkgr` is then passed down to `npm` command.
 
 The cache folder used by `npm-pkgr` is `~/.npm-pkgr` for current user.
 
-We do not do any cleaning in it if it becomes too large, do it.
+```shell
+npm-pkgr prune
+```
+
+Removes older than a month cache folders (into your `~/.npm-pkgr` folder)
 
 ## Debug
 
