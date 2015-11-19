@@ -11,6 +11,7 @@ var computeHash = require('./lib/compute-hash');
 var installNpm = require('./lib/install-npm');
 var lazyCopy = require('./lib/lazy-copy');
 var realPath = require('./lib/real-path');
+var pruneCache = require('./lib/prune-cache');
 
 function npmPkgr(opts, cb) {
   var debug = require('debug')('npm-pkgr');
@@ -29,6 +30,14 @@ function npmPkgr(opts, cb) {
     stale: 60 * 1000,
     retries: 30
   };
+
+  /**
+    * Intercepts `$ npm-pkgr prune` calls
+    * Flow:
+    *   - find `~/.npm-pkgr/*` dir older than one month
+    *   - remove them
+  */
+  if (opts.args[0] === 'prune') return pruneCache(npmPkgrCache, cb);
 
   /**
    * Flow:
