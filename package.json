@@ -1,6 +1,6 @@
 {
   "name": "npm-pkgr",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Cache `npm install` results by hashing dependencies",
   "main": "index.js",
   "scripts": {
