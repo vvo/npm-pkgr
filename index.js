@@ -110,6 +110,12 @@ function npmPkgr(opts, cb) {
       npmUsed = true;
       async.series([
         lazyCopy.bind(null, files, cachedir),
+        function(cb) {
+          // Ensure that partially installed node_modules from a previous build are cleared so
+          // that this `npm install` leaves us in a good state.
+          rimraf.sync(path.join(cachedir, 'node_modules'));
+          cb();
+        },
         installNpm.bind(null, cachedir, npmArgs),
         function(cb) {
           async.waterfall([
