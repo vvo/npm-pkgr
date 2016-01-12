@@ -26,8 +26,8 @@ function npmPkgr(opts, cb) {
   var production = opts.args.indexOf('--production') !== -1;
   var npmPkgrCache = path.join(process.env.HOME, '.npm-pkgr');
   var lockOpts = {
-    wait: 2 * 1000,
-    stale: 60 * 1000,
+    wait: 10 * 1000,
+    stale: 3 * 60 * 1000, // 5 minute stale
     retries: 30
   };
 
@@ -78,13 +78,19 @@ function npmPkgr(opts, cb) {
     var cachelock = path.join(npmPkgrCache, hash + '.lock');
     var copylock = path.join(npmPkgrCache, hash + '-copy.lock');
     var cachedir = path.join(npmPkgrCache, hash);
+    var doneFilePath = path.join(cachedir, 'finished');
+
     var cancelAndExit = cancel.bind(null, true);
     var destination = path.join(opts.cwd, 'node_modules');
 
-    async.series([
-      lockfile.lock.bind(lockfile, cachelock, lockOpts),
-      mkdirp.bind(null, cachedir)
-    ], function(err, res) {
+    async.series({
+      acquireLock: lockfile.lock.bind(lockfile, cachelock, lockOpts),
+      mkdirResults: mkdirp.bind(null, cachedir),
+      doneFileExists: function(cb) {
+        var exists = fs.existsSync(doneFilePath);
+        cb(null, exists);
+      }
+    }, function(err, res) {
       debug('cachedir: %s, lockfile: %s', cachedir, cachelock);
 
       if (err) {
@@ -94,10 +100,7 @@ function npmPkgr(opts, cb) {
       process.once('SIGTERM', cancelAndExit);
       process.once('SIGINT', cancelAndExit);
 
-      // mkdirp sends (err, made), made = null means dir already exists
-      var exists = res[1] === null;
-
-      if (exists) {
+      if (res.doneFileExists) {
         return async.series([
           lockfile.unlock.bind(null, cachelock),
           getNodeModules
@@ -108,6 +111,16 @@ function npmPkgr(opts, cb) {
       async.series([
         lazyCopy.bind(null, files, cachedir),
         installNpm.bind(null, cachedir, npmArgs),
+        function(cb) {
+          async.waterfall([
+            function(cb) {
+              fs.open(doneFilePath, 'w', cb);
+            },
+            function(fd, cb) {
+              fs.close(fd, cb);
+            }
+          ], cb);
+        },
         lockfile.unlock.bind(lockfile, cachelock),
         getNodeModules
       ], end);
@@ -119,7 +132,7 @@ function npmPkgr(opts, cb) {
 
         // save npm-debug.log before deleting everything
         if (fs.existsSync(path.join(cachedir, 'npm-debug.log'))) {
-          fs.writeFileSync(path.join(opts.cwd, 'npm-debug.log'), fs.readFileSync(path.join(cachedir, 'npm-debug.log')))
+          fs.writeFileSync(path.join(opts.cwd, 'npm-debug.log'), fs.readFileSync(path.join(cachedir, 'npm-debug.log')));
         }
 
         rimraf.sync(cachedir);
@@ -134,6 +147,10 @@ function npmPkgr(opts, cb) {
     }
 
     function end(err) {
+      if (err) {
+        console.log('Error occurred:', err);
+      }
+
       try {
         process.removeListener('SIGTERM', cancelAndExit);
         process.removeListener('SIGINT', cancelAndExit);
@@ -165,7 +182,7 @@ function npmPkgr(opts, cb) {
           path.join(cachedir, 'node_modules'),
           path.join(opts.cwd, 'node_modules'),
           'dir'
-        )
+        );
       }
 
       async.series([
