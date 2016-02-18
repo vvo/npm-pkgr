@@ -13,7 +13,7 @@ npmPkgr = require('../');
 clean = function clean() {
   shell.exec('rm -rf ~/.npm-pkgr');
   shell.exec('npm cache clean');
-}
+};
 
 getTmpProject = function getTmpProject(from) {
   var path = require('path');
@@ -26,7 +26,7 @@ getTmpProject = function getTmpProject(from) {
   shell.cp(from + '/.npmrc', tmpDir);
 
   return tmpDir;
-}
+};
 
 // get ($directory/node_modules/lodash/package.json).version
 packageVersion = function packageVersion(directory, packageName) {
@@ -34,7 +34,7 @@ packageVersion = function packageVersion(directory, packageName) {
   var json = require('jsonfile');
 
   return json.readFileSync(path.join(directory, 'node_modules', packageName, 'package.json')).version;
-}
+};
 
 
 updateJson = function updateJson(file, props) {
@@ -46,4 +46,4 @@ updateJson = function updateJson(file, props) {
     var newJSON = merge(actualJSON, props);
     json.writeFile(file, newJSON, cb);
   }
-}
+};
