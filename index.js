@@ -164,7 +164,7 @@ function npmPkgr(opts, cb) {
         get = fs.symlink.bind(fs,
           path.join(cachedir, 'node_modules'),
           path.join(opts.cwd, 'node_modules'),
-          'dir'
+          /^win/.test(process.platform) ? 'junction' : 'dir'
         )
       }
 

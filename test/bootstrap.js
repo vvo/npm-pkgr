@@ -6,12 +6,13 @@ fs = require('fs');
 path = require('path');
 shell = require('shelljs');
 test = require('prova');
+rimraf = require('rimraf');
 
 baseProject = path.join(__dirname, 'example-project');
 npmPkgr = require('../');
 
 clean = function clean() {
-  shell.exec('rm -rf ~/.npm-pkgr');
+  rimraf.sync(path.join(process.env.HOME, '.npm-pkgr'));
   shell.exec('npm cache clean');
 };
 
