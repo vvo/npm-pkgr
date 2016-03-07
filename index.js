@@ -20,7 +20,6 @@ function npmPkgr(opts, cb) {
 
   opts.args = opts.args || [];
 
-  var npmArgs = opts.args.join(' ');
   var npmUsed;
   var files = ['package.json', 'npm-shrinkwrap.json', '.npmrc'].map(realPath(opts.cwd));
   var production = opts.args.indexOf('--production') !== -1;
@@ -107,7 +106,7 @@ function npmPkgr(opts, cb) {
       npmUsed = true;
       async.series([
         lazyCopy.bind(null, files, cachedir),
-        installNpm.bind(null, cachedir, npmArgs),
+        installNpm.bind(null, cachedir, { args: opts.args, showNpmOutput: opts.showNpmOutput }),
         lockfile.unlock.bind(lockfile, cachelock),
         getNodeModules
       ], end);

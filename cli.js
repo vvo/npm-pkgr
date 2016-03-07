@@ -10,7 +10,8 @@ if (argv.version) {
 npmPkgr({
   cwd: process.cwd(),
   args: process.argv.slice(2),
-  strategy: argv.strategy
+  strategy: argv.strategy,
+  showNpmOutput: argv['show-npm-output']
 }, end);
 
 function end(err, res) {
