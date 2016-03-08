@@ -37,12 +37,11 @@ function testWithFailure(t, args) {
 }
 
 function setupNpmFailure(projectDir, callback) {
-  var shrinkwrap = path.join(projectDir, 'npm-shrinkwrap.json');
+  var pkg = path.join(projectDir, 'package.json');
 
-  updateJson(shrinkwrap, {
-    dependencies: {
-      // this should fail npm install
-      dslakdslakdas: 'foiwqufwoqiufqw'
+  updateJson(pkg, {
+    scripts: {
+      preinstall: 'There\'s no way this will work'
     }
   })(callback);
 }
