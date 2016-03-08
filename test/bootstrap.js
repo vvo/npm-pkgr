@@ -1,3 +1,7 @@
+// This works as long as we do it really early.
+// See also https://github.com/substack/tape/issues/218
+process.on('exit', cleanTmpProjects);
+
 // Yup, I export some globals for tests
 // BOOM! Break the rules
 
@@ -11,6 +15,8 @@ rimraf = require('rimraf');
 baseProject = path.join(__dirname, 'example-project');
 npmPkgr = require('../');
 
+var tmpProjects = [];
+
 clean = function clean() {
   rimraf.sync(path.join(process.env.HOME, '.npm-pkgr'));
   shell.exec('npm cache clean');
@@ -22,12 +28,21 @@ getTmpProject = function getTmpProject(from) {
 
   var tmpDir = path.join(shell.tempdir(), uuid.v4());
 
+  tmpProjects.push(tmpDir);
+
   from = from || baseProject;
   shell.cp('-R', from + '/', tmpDir);
   shell.cp(from + '/.npmrc', tmpDir);
 
   return tmpDir;
 };
+
+function cleanTmpProjects() {
+  tmpProjects.forEach(function(tmpDir) {
+    rimraf.sync(tmpDir);
+  });
+  tmpProjects = [];
+}
 
 // get ($directory/node_modules/lodash/package.json).version
 packageVersion = function packageVersion(directory, packageName) {
