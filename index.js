@@ -106,7 +106,7 @@ function npmPkgr(opts, cb) {
       npmUsed = true;
       async.series([
         lazyCopy.bind(null, files, cachedir),
-        installNpm.bind(null, cachedir, { args: opts.args, showNpmOutput: opts.showNpmOutput }),
+        installNpm.bind(null, cachedir, { args: opts.args, npmIo: opts.npmIo }),
         lockfile.unlock.bind(lockfile, cachelock),
         getNodeModules
       ], end);
