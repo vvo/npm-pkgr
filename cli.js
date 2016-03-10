@@ -10,7 +10,8 @@ if (argv.version) {
 npmPkgr({
   cwd: process.cwd(),
   args: process.argv.slice(2),
-  strategy: argv.strategy
+  strategy: argv.strategy,
+  npmIo: argv['show-npm-output'] ? 'inherit' : null
 }, end);
 
 function end(err, res) {

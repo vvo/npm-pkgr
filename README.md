@@ -29,25 +29,31 @@ Use `npm-pkgr` instead of `npm install` and you are done.
 npm-pkgr
 ```
 
-Hashes and find the latest build corresponding to `package.json` and `npm-shrinkwrap.json`.
+Hashes and finds the latest build corresponding to `package.json` and `npm-shrinkwrap.json`.
 
 ```shell
 npm-pkgr --production
 ```
 
-Hashes and fin the latest build corresponding to `npm-shrinkwrap.json`.
+Hashes and finds the latest build corresponding to `npm-shrinkwrap.json`.
 
-Every flag passed to `npm-pkgr` is then passed down to `npm` command.
+```shell
+npm-pkgr --show-npm-output
+```
+
+Displays `npm`'s output, if `npm install` is run.
+
+Every other flag passed to `npm-pkgr` is passed down to the `npm install` command.
 
 ## Cache folder
 
-The cache folder used by `npm-pkgr` is `~/.npm-pkgr` for current user.
+The cache folder used by `npm-pkgr` is `~/.npm-pkgr` for the current user.
 
 ```shell
 npm-pkgr prune
 ```
 
-Removes older than a month cache folders (into your `~/.npm-pkgr` folder)
+Removes cache folders older than a month (in your `~/.npm-pkgr` folder)
 
 ## Debug
 
@@ -67,7 +73,7 @@ You can also get a full copy of the `~/.npm-pkgr/$hash/node_modules`.
 npm-pkgr --strategy=copy
 ```
 
-Carefull, if you `--strategy copy`, you will end up installing the `copy package`
+Careful, if you `--strategy copy`, you will end up installing the `copy package`
 
 ## features
 
