@@ -10,6 +10,7 @@ var path = require('path');
 var rimraf = require('rimraf');
 var aws = require('aws-sdk');
 var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
 var S3 = new aws.S3({
   apiVersion: '2006-03-01'
 });
@@ -124,15 +125,19 @@ function downloadPackages(commandName, cacheDir, cb) {
 }
 
 function buildPackages(commandName, cacheDir, cb) {
-  var execOpts = {
-    cwd: cacheDir,
-    maxBuffer: 20 * 1024 * 1024
-  };
-
   switch (commandName) {
   case 'npm':
     console.log('Building npm packages.');
-    return exec('npm rebuild', execOpts, cb);
+
+    var npmRebuildCall = spawn('npm', ['rebuild'], { cwd: cacheDir }, cb);
+    npmRebuildCall.stdout.on('data', function(data) {
+      console.log('stdout: ' + data);
+    });
+    npmRebuildCall.stderr.on('data', function(data) {
+      console.log('stderr: ' + data);
+    });
+
+    return npmRebuildCall;
   case 'bower':
     return cb();
   default:
