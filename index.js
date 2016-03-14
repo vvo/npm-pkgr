@@ -134,7 +134,7 @@ function buildPackages(commandName, cacheDir, cb) {
   case 'npm':
     console.log('Building npm packages.');
 
-    var x = spawn('npm rebuild', [], execOpts, cb);
+    var x = spawn('npm', ['rebuild'], execOpts, cb);
 
     x.stdout.on('data', function (data) {
       console.log('stdout: ' + data);
