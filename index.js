@@ -125,16 +125,11 @@ function downloadPackages(commandName, cacheDir, cb) {
 }
 
 function buildPackages(commandName, cacheDir, cb) {
-  var execOpts = {
-    cwd: cacheDir,
-    maxBuffer: 20 * 1024 * 1024
-  };
-
   switch (commandName) {
   case 'npm':
     console.log('Building npm packages.');
 
-    var npmRebuildCall = spawn('npm', ['rebuild'], execOpts, cb);
+    var npmRebuildCall = spawn('npm', ['rebuild'], { cwd: cacheDir }, cb);
     npmRebuildCall.stdout.on('data', function(data) {
       console.log('stdout: ' + data);
     });
