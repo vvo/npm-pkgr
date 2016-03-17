@@ -131,10 +131,10 @@ function buildPackages(commandName, cacheDir, cb) {
 
     var npmRebuildCall = spawn('npm', ['rebuild'], { cwd: cacheDir }, cb);
     npmRebuildCall.stdout.on('data', function(data) {
-      console.log('stdout: ' + data);
+      process.stdout.write('stdout: ' + data);
     });
     npmRebuildCall.stderr.on('data', function(data) {
-      console.log('stderr: ' + data);
+      process.stderr.write('stderr: ' + data);
     });
 
     return npmRebuildCall;
