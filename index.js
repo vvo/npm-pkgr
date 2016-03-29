@@ -10,6 +10,7 @@ var rimraf = require('rimraf');
 var computeHash = require('./lib/compute-hash');
 var installNpm = require('./lib/install-npm');
 var lazyCopy = require('./lib/lazy-copy');
+var symlink = require('./lib/symlink');
 var realPath = require('./lib/real-path');
 var pruneCache = require('./lib/prune-cache');
 
@@ -22,6 +23,7 @@ function npmPkgr(opts, cb) {
 
   var npmUsed;
   var files = ['package.json', 'npm-shrinkwrap.json', '.npmrc'].map(realPath(opts.cwd));
+  var symlinks = ['node_shrinkwrap'].map(realPath(opts.cwd));
   var production = opts.args.indexOf('--production') !== -1;
   var npmPkgrCache = path.join(process.env.HOME, '.npm-pkgr');
   var lockOpts = {
@@ -106,6 +108,7 @@ function npmPkgr(opts, cb) {
       npmUsed = true;
       async.series([
         lazyCopy.bind(null, files, cachedir),
+        symlink.bind(null, symlinks, cachedir),
         installNpm.bind(null, cachedir, { args: opts.args, npmIo: opts.npmIo }),
         lockfile.unlock.bind(lockfile, cachelock),
         getNodeModules
