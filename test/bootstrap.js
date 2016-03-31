@@ -9,7 +9,7 @@ async = require('contra');
 fs = require('fs');
 path = require('path');
 shell = require('shelljs');
-test = require('prova');
+test = require('tape');
 rimraf = require('rimraf');
 
 baseProject = path.join(__dirname, 'example-project');

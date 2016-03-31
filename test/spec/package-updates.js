@@ -1,5 +1,3 @@
-require('../bootstrap');
-
 test('updating versions', function(t) {
   clean();
 

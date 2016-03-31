@@ -1,5 +1,3 @@
-require('../bootstrap');
-
 test('no package.json found', function(t) {
   clean();
 

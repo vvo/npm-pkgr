@@ -4,7 +4,7 @@
   "description": "Cache `npm install` results by hashing dependencies",
   "main": "index.js",
   "scripts": {
-    "test": "find test/spec/*.js -print0 | xargs -n 1 -0 node"
+    "test": "tape -r ./test/bootstrap.js test/spec/*.js"
   },
   "bin": {
     "npm-pkgr": "./cli.js"
@@ -33,9 +33,9 @@
   "devDependencies": {
     "lodash": "^4",
     "mock-fs": "^3.4.0",
-    "prova": "^2.1.2",
     "proxyquire": "^1.0.1",
     "shelljs": "^0.6.0",
+    "tape": "^4.5.1",
     "uuid": "^2.0.1"
   }
 }

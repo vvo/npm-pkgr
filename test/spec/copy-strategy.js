@@ -1,5 +1,3 @@
-require('../bootstrap');
-
 test('copy strategy', function(t) {
   clean();
 

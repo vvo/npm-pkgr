@@ -1,5 +1,3 @@
-require('../bootstrap');
-
 test('--production results in different link', function(t) {
   clean();
 
