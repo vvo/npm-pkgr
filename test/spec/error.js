@@ -1,5 +1,3 @@
-require('../bootstrap');
-
 test('error occurs', function(t) {
   clean();
 

@@ -1,5 +1,3 @@
-require('../bootstrap');
-
 test('caches npm install results', function(t) {
   clean();
 

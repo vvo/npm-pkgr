@@ -1,5 +1,3 @@
-require('../bootstrap');
-
 test('npm-debug.log is saved when npm install fails', function(t) {
   clean();
 

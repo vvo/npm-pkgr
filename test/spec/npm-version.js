@@ -1,5 +1,3 @@
-require('../bootstrap');
-
 test('npm version used ', function(t) {
   clean();
 

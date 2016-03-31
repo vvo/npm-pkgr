@@ -1,7 +1,6 @@
 var fs = require('fs');
 var path = require('path');
 var EOL = require('os').EOL;
-require('../bootstrap');
 
 test('npmrc should be copied', function(t) {
   clean();

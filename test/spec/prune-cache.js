@@ -1,5 +1,3 @@
-require('../bootstrap');
-
 var mock = require('mock-fs');
 
 test('prune cache older than a month', function(t) {

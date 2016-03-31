@@ -1,5 +1,3 @@
-require('../bootstrap');
-
 test('node version is different', function(t) {
   clean();
 

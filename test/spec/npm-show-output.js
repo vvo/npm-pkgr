@@ -1,5 +1,3 @@
-require('../bootstrap');
-
 test('Capture npm output', function(t) {
   clean();
 

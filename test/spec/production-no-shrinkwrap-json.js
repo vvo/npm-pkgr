@@ -1,5 +1,3 @@
-require('../bootstrap');
-
 test('--production usage without an npm-shrinkwrap.json file', function(t) {
   clean();
 
