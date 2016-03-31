@@ -9,10 +9,27 @@ if (argv.version) {
 
 npmPkgr({
   cwd: process.cwd(),
-  args: process.argv.slice(2),
+  args: process.argv.slice(2).filter(removeArgs.bind(null, {
+    '--strategy': { expectsValue: false },
+    '--show-npm-output': { expectsValue: false },
+    '--symlinks': { expectsValue: true }
+  })),
   strategy: argv.strategy,
-  npmIo: argv['show-npm-output'] ? 'inherit' : null
+  npmIo: argv['show-npm-output'] ? 'inherit' : null,
+  symlinks: argv.symlinks ? argv.symlinks.split(',') : null
 }, end);
+
+
+function removeArgs(argsToRemove, argName, argIndex, argsArr) {
+  var removeCurrentArg = typeof argsToRemove[argName] !== 'undefined';
+  var removePreviousArg = (
+    argIndex > 0 &&
+    argName.indexOf('--') !== 0 &&
+    typeof argsToRemove[argsArr[argIndex - 1]] !== 'undefined' &&
+    argsToRemove[argsArr[argIndex - 1]].expectsValue === true
+  );
+  return !(removeCurrentArg || removePreviousArg);
+}
 
 function end(err, res) {
   if (err) {

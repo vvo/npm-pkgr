@@ -20,10 +20,11 @@ function npmPkgr(opts, cb) {
   console.log('starting npm-pkgr with opts: %j', opts);
 
   opts.args = opts.args || [];
+  opts.symlinks = opts.symlinks || [];
 
   var npmUsed;
   var files = ['package.json', 'npm-shrinkwrap.json', '.npmrc'].map(realPath(opts.cwd));
-  var symlinks = ['node_shrinkwrap'].map(realPath(opts.cwd));
+  var symlinks = opts.symlinks.map(realPath(opts.cwd));
   var production = opts.args.indexOf('--production') !== -1;
   var npmPkgrCache = path.join(process.env.HOME, '.npm-pkgr');
   var lockOpts = {
