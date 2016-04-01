@@ -150,7 +150,8 @@ function npmPkgr(opts, cb) {
       cb(null, {
         dir: opts.cwd,
         node_modules: destination,
-        npm: npmUsed
+        npm: npmUsed,
+        cachedir: cachedir
       });
     }
 
