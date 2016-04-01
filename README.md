@@ -75,6 +75,16 @@ npm-pkgr --strategy=copy
 
 Careful, if you `--strategy copy`, you will end up installing the `copy package`
 
+## symlinks
+
+Use the `--symlinks` option if you wish make some files or folders from your project available during `npm install`.
+
+For example if your project includes a local `.cache` folder for the npm cache and a `node_shrinkwrap` folder for pre-packaged modules, then you can use the following command to make those resources available when npm-pkgr runs `npm install`:
+
+```shell
+npm-pkgr --symlinks=.cache,node_shrinkwrap
+```
+
 ## features
 
 * insanely fast `npm install` if already done
