@@ -117,7 +117,7 @@ function downloadPackages(commandName, cacheDir, cb) {
     exec('bower install', execOpts, cb);
     break;
   case 'npm':
-    exec('npm install --ignore-scripts', execOpts, cb);
+    exec('npm install', execOpts, cb);
     break;
   default:
     cb(new Error('Command mismatch'));
