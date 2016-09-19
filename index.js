@@ -3,11 +3,9 @@ var util = require('util');
 
 var async = require('async');
 var _ = require('lodash');
-var fs = require('fs');
+var fs = require('fs-extra');
 var lockfile = require('lockfile');
-var mkdirp = require('mkdirp');
 var path = require('path');
-var rimraf = require('rimraf');
 var aws = require('aws-sdk');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
@@ -19,7 +17,6 @@ var computeHash = require('./lib/compute-hash');
 var lazyCopy = require('./lib/lazy-copy');
 var realPath = require('./lib/real-path');
 var pruneCache = require('./lib/prune-cache');
-var ncp = require('ncp');
 
 var lockOpts = {
   wait: 10 * 1000,
@@ -78,7 +75,7 @@ function cleanupForceExit(exit) {
     //  fs.writeFileSync(path.join(opts.cwd, 'npm-debug.log'), fs.readFileSync(path.join(cachedir, 'npm-debug.log')));
     //}
 
-    //rimraf.sync(cachedir);
+    //fs.removeSync(cachedir);
 
     //lockfile.unlockSync(cachelock);
     //lockfile.unlockSync(copylock);
@@ -95,10 +92,10 @@ function createDirectoryCopy(src, target, cb) {
     // The package is fully installed at this point so writes shouldn't occur,
     // and reads shouldn't conflict.
     //_.partial(lockfile.lock, copylock, lockOpts),
-    _.partial(rimraf, target),
+    _.partial(fs.remove, target),
     function(cb) {
       if (!argv['symlink']) {
-        ncp(src, target, cb);
+        fs.copy(src, target, { preserveTimestamps: true }, cb);
       } else {
         fs.symlink(src, target, 'dir', cb);
       }
@@ -175,7 +172,7 @@ function uploadToS3(cacheRoot, origFile, zipFilename, cb) {
     if (err) {
       console.log('Error occurred while zipping/s3 uploaded: ' + err.message);
     }
-    rimraf(zipFilepath, cb);
+    fs.remove(zipFilepath, cb);
   });
 }
 
@@ -218,7 +215,7 @@ function downloadS3File(cacheRoot, zipFilename, cb) {
     if (err) {
       return cb(err);
     }
-    rimraf(zipFilepath, cb);
+    fs.remove(zipFilepath, cb);
   });
 }
 
@@ -270,7 +267,7 @@ function installPackages(opts, cb) {
   async.waterfall([
     function(cb) {
       async.parallel({
-        mkCachePath: _.partial(mkdirp, cacheRoot),
+        mkCachePath: _.partial(fs.mkdirp, cacheRoot),
         depHash: function(cb) {
           switch (commandName) {
           case 'npm':
@@ -315,7 +312,7 @@ function installPackages(opts, cb) {
           console.log('Locally cached package not found.');
           async.series([
             // Ensure that the build directory is cleared to prevent partial installs
-            _.partial(rimraf, cachedir),
+            _.partial(fs.remove, cachedir),
             function(cb) {
               downloadS3File(cacheRoot, zipFilename, function(err) {
                 if (!err) return cb();
@@ -330,7 +327,7 @@ function installPackages(opts, cb) {
                 })();
 
                 async.series([
-                  _.partial(mkdirp, cachedir),
+                  _.partial(fs.mkdirp, cachedir),
                   _.partial(lazyCopy, files, cachedir),
                   _.partial(downloadPackages, commandName, cachedir),
                   _.partial(uploadToS3, cacheRoot, hash, zipFilename)

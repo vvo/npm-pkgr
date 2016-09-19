@@ -26,7 +26,6 @@ test('error occurs', function(t) {
 
   function end(err, results) {
     t.equal(packageVersion(results[3].dir, 'lodash'), '0.2.0');
-    t.equal(packageVersion(results[3].dir, 'mkdirp'), '0.3.5');
 
     t.end();
   }
