@@ -24,7 +24,7 @@ function end(err, res) {
     process.exit(1);
   }
 
-  console.log('Packages installed in %s', res.node_modules);
+  console.log('Packages installed in %s', res.output);
 
   if (!res.npm) {
     console.log('`npm install` was not used');
