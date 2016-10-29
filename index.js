@@ -296,6 +296,11 @@ function installPackages(opts, cb) {
         function(cb) {
           async.series({
             acquireLock: _.partial(lockfile.lock, cachelock, lockOpts),
+            srcExists: function(cb) {
+              fs.exists(src, function(exists) {
+                cb(null, exists);
+              });
+            },
             doneFileExists: function(cb) {
               fs.exists(doneFilePath, function(exists) {
                 cb(null, exists);
@@ -307,7 +312,14 @@ function installPackages(opts, cb) {
           process.once('SIGTERM', cancelAndExit);
           process.once('SIGINT', cancelAndExit);
 
-          if (res.doneFileExists) return cb(null, false);
+          if (res.doneFileExists) {
+            if (res.srcExists) {
+              console.log(`Error: ${src} not found but reporting finished, reinstalling...`);
+              fs.removeSync(doneFilePath);
+            } else {
+              return cb(null, false);
+            }
+          }
 
           console.log('Locally cached package not found.');
           async.series([
