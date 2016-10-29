@@ -313,7 +313,7 @@ function installPackages(opts, cb) {
           process.once('SIGINT', cancelAndExit);
 
           if (res.doneFileExists) {
-            if (res.srcExists) {
+            if (!res.srcExists) {
               console.log(`Error: ${src} not found but reporting finished, reinstalling...`);
               fs.removeSync(doneFilePath);
             } else {
