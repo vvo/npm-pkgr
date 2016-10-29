@@ -297,6 +297,8 @@ function installPackages(opts, cb) {
           async.series({
             acquireLock: _.partial(lockfile.lock, cachelock, lockOpts),
             srcExists: function(cb) {
+              // occassionally get into state where we only have doneFilePath
+              // but not src, so check for both (ys, DSP-11156)
               fs.exists(src, function(exists) {
                 cb(null, exists);
               });
