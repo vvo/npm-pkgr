@@ -21,12 +21,17 @@ function npmPkgr(opts, cb) {
 
   opts.args = opts.args || [];
   opts.symlinks = opts.symlinks || [];
+  opts.cachepath = opts.cachepath || [];
 
   var npmUsed;
   var files = ['package.json', 'npm-shrinkwrap.json', '.npmrc'].map(realPath(opts.cwd));
   var symlinks = opts.symlinks.map(realPath(opts.cwd));
   var production = opts.args.indexOf('--production') !== -1;
-  var npmPkgrCache = path.join(process.env.HOME, '.npm-pkgr');
+  var npmPkgrCache =  opts.cachepath[0] ||  path.join(process.env.HOME, '.npm-pkgr');
+  
+  
+  console.log('npmPkgrCache', npmPkgrCache);
+  
   var lockOpts = {
     wait: 2 * 1000,
     stale: 60 * 1000,
