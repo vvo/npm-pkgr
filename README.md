@@ -85,6 +85,14 @@ For example if your project includes a local `.cache` folder for the npm cache a
 npm-pkgr --symlinks=.cache,node_shrinkwrap
 ```
 
+## cachepath
+
+Use the `--cachepath` option if you want use a specific folder for the cache folder.
+
+```shell
+npm-pkgr --cachepath=/data/node-vXXX/.npm-pkgr
+```
+
 ## features
 
 * insanely fast `npm install` if already done

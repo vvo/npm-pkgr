@@ -12,11 +12,13 @@ npmPkgr({
   args: process.argv.slice(2).filter(removeArgs.bind(null, {
     '--strategy': { expectsValue: false },
     '--show-npm-output': { expectsValue: false },
-    '--symlinks': { expectsValue: true }
+    '--symlinks': { expectsValue: true },
+	'--cachepath': { expectsValue: true }
   })),
   strategy: argv.strategy,
   npmIo: argv['show-npm-output'] ? 'inherit' : null,
-  symlinks: argv.symlinks ? argv.symlinks.split(',') : null
+  symlinks: argv.symlinks ? argv.symlinks.split(',') : null,
+  cachepath: argv.cachepath ? argv.cachepath.split(',') : null
 }, end);
 
 
