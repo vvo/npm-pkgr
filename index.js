@@ -29,9 +29,6 @@ function npmPkgr(opts, cb) {
   var production = opts.args.indexOf('--production') !== -1;
   var npmPkgrCache =  opts.cachepath[0] ||  path.join(process.env.HOME, '.npm-pkgr');
   
-  
-  console.log('npmPkgrCache', npmPkgrCache);
-  
   var lockOpts = {
     wait: 2 * 1000,
     stale: 60 * 1000,
