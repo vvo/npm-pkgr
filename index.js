@@ -20,7 +20,7 @@ var pruneCache = require('./lib/prune-cache');
 
 var lockOpts = {
   wait: 10 * 1000,
-  stale: 3 * 60 * 1000, // 5 minute stale
+  stale: 10 * 60 * 1000, // 10 minute stale
   retries: 30
 };
 
@@ -295,7 +295,7 @@ function installPackages(opts, cb) {
       async.waterfall([
         function(cb) {
           async.series({
-            acquireLock: _.partial(lockfile.lock, cachelock, lockOpts),
+            acquirelock: _.partial(lockfile.lock, cachelock, lockopts),
             srcExists: function(cb) {
               // occassionally get into state where we only have doneFilePath
               // but not src, so check for both (ys, DSP-11156)
